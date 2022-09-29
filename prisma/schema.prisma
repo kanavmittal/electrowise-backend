@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model devicedata {
+  id           Int      @default(autoincrement())
+  logged_at    DateTime @default(now())
+  power        Float
+  current      Float
+  voltage      Float
+  frequency    Float
+  power_factor Float
+  device_id    Int
+  user_id      Int
+  device       Device   @relation(fields: [device_id], references: [id])
+  room_id      Int
+  room         Room     @relation(fields: [room_id], references: [id])
+
+  @@unique([id, logged_at])
+}
+
+model Device {
+  id                Int          @id @default(autoincrement())
+  Device_data       devicedata[]
+  room              Room         @relation(fields: [room_id], references: [id])
+  room_id           Int
+  user_id           Int
+  user              User         @relation(fields: [user_id], references: [id])
+  name              String
+  status            Boolean      @default(false)
+  communication_url String       @default("")
+}
+
+model Room {
+  id          Int          @id @default(autoincrement())
+  devices     Device[]
+  user_id     Int
+  user        User         @relation(fields: [user_id], references: [id])
+  name        String
+  description String
+  devicedata  devicedata[]
+}
+
+model Followers {
+  id          Int     @id @default(autoincrement())
+  user_id     Int
+  follower_id Int
+  user        User    @relation(fields: [user_id], references: [id])
+  isPending   Boolean
+}
+
+model Otp {
+  id        Int      @id @default(autoincrement())
+  device_id Int      @default(0)
+  otp       Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id              Int         @id @default(autoincrement())
+  username        String      @unique
+  password        String
+  email           String
+  phone_number    String
+  electricty_cost Float
+  green_coins     Float       @default(0)
+  following       Followers[]
+  Device          Device[]
+  Room            Room[]
+}
