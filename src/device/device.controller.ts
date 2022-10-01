@@ -49,8 +49,8 @@ export class DeviceController {
   }
   @UseGuards(AuthenticatedGuard)
   @Delete('delete/:id')
-  deleteData(@Param() params) {
-    return this.DeviceService.deleteDevice(parseInt(params.id));
+  deleteData(@Param() params, @Request() req) {
+    return this.DeviceService.deleteDevice(parseInt(params.id), req);
   }
   @UseGuards(AuthenticatedGuard)
   @Get('alldata/get')

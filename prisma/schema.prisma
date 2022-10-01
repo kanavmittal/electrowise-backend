@@ -20,7 +20,7 @@ model devicedata {
   power_factor Float
   device_id    Int
   user_id      Int
-  device       Device   @relation(fields: [device_id], references: [id])
+  device       Device   @relation(fields: [device_id], references: [id], onDelete: Cascade)
   room_id      Int
   room         Room     @relation(fields: [room_id], references: [id])
 
@@ -33,7 +33,7 @@ model Device {
   room              Room         @relation(fields: [room_id], references: [id])
   room_id           Int
   user_id           Int
-  user              User         @relation(fields: [user_id], references: [id])
+  user              User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
   name              String
   status            Boolean      @default(false)
   communication_url String       @default("")
@@ -43,7 +43,7 @@ model Room {
   id          Int          @id @default(autoincrement())
   devices     Device[]
   user_id     Int
-  user        User         @relation(fields: [user_id], references: [id])
+  user        User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
   name        String
   description String
   devicedata  devicedata[]
@@ -60,6 +60,7 @@ model Followers {
 model Otp {
   id        Int      @id @default(autoincrement())
   device_id Int      @default(0)
+  user_id   Int      @default(0)
   otp       Int
   expiresAt DateTime
   createdAt DateTime @default(now())

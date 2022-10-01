@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
@@ -12,10 +13,6 @@ import {
 } from 'src/dto';
 
 import jsonwebtoken from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-const algorithm = 'aes-256-cbc';
 @Injectable()
 export class DeviceService {
   constructor(private DatabaseService: DatabaseService) {}
@@ -55,9 +52,6 @@ export class DeviceService {
   }
 
   async activateDevice(Body: activateDeviceDto) {
-    // var deviceData = this.jwtService.decode(
-    //   Body.token,
-    // ) as activateDeviceDataDto;
     try {
       var data = await this.DatabaseService.otp.findFirst({
         where: {
@@ -65,28 +59,40 @@ export class DeviceService {
           device_id: {
             not: 0,
           },
+          user_id: {
+            not: 0,
+          },
         },
       });
-      if (!data && data.expiresAt < new Date()) {
+      if (!data) {
         return NotFoundException;
       }
+      if (data.expiresAt < new Date()) {
+        return NotAcceptableException;
+      }
+      var configuration = {
+        user_id: data.user_id,
+        device_id: data.device_id,
+      };
+      var token = jsonwebtoken.sign(
+        configuration,
+        process.env.JWT_DEVICE_SECRET,
+      );
+      await this.DatabaseService.device.update({
+        where: {
+          id: data.device_id,
+        },
+        data: {
+          communication_url: token,
+          status: true,
+        },
+      });
+      return { token, configuration };
     } catch (error) {
       return InternalServerErrorException;
     }
-
-    // var secret = uuidv4();
-    // await this.DatabaseService.device.update({
-    //   where: {
-    //     id: deviceData.id,
-    //   },
-    //   data: {
-    //     communication_url: url,
-    //     status: true,
-    //     secret: secret,
-    //   },
-    // });
-    // return { url, secret };
   }
+
   async createDevice(body: createDeviceDto, req: any) {
     var data = await this.DatabaseService.device.create({
       data: {
@@ -95,12 +101,11 @@ export class DeviceService {
         user_id: req.user.id,
       },
     });
-
-    console.log(data);
     try {
       var otps = await this.DatabaseService.otp.findFirst({
         where: {
           device_id: 0,
+          user_id: 0,
         },
       });
       await this.DatabaseService.otp.update({
@@ -110,6 +115,7 @@ export class DeviceService {
         data: {
           expiresAt: new Date(new Date().getMinutes() + 60000),
           device_id: data.id,
+          user_id: req.user.id,
         },
       });
     } catch (error) {
@@ -119,22 +125,21 @@ export class DeviceService {
     return { otp: `${otps.otp}` };
   }
 
-  async deleteDevice(id: number) {
-    const deleteData = this.DatabaseService.devicedata.deleteMany({
+  async deleteDevice(id: number, req: any) {
+    var find = await this.DatabaseService.device.findFirst({
       where: {
-        device_id: id,
+        id: id,
+        user_id: req.user.id,
       },
     });
-    const deleteDevice = this.DatabaseService.device.delete({
+    if (!find) {
+      return NotAcceptableException;
+    }
+    await this.DatabaseService.device.delete({
       where: {
         id: id,
       },
     });
-    var result = await this.DatabaseService.$transaction([
-      deleteData,
-      deleteDevice,
-    ]);
-    return result;
   }
   async deviceData(req: any, id: number) {
     var sharedData = await this.DatabaseService

@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotAcceptableException,
+  Param,
+} from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { createRoomDto } from 'src/dto';
 
@@ -24,11 +29,12 @@ export class RoomsService {
           include: {
             Device_data: {
               orderBy: {
-                logged_at: 'asc',
+                logged_at: 'desc',
               },
               take: 1,
             },
           },
+          take: 5,
         },
       },
     });
@@ -70,5 +76,21 @@ export class RoomsService {
       },
     });
     return data;
+  }
+  async deleteRoom(req: any, id: number) {
+    var find = await this.DatabaseService.room.findFirst({
+      where: {
+        id: id,
+        user_id: req.user.id,
+      },
+    });
+    if (!find) {
+      return NotAcceptableException;
+    }
+    await this.DatabaseService.room.delete({
+      where: {
+        id: id,
+      },
+    });
   }
 }
