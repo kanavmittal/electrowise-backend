@@ -28,8 +28,8 @@ export class RoomsController {
   }
   @UseGuards(AuthenticatedGuard)
   @Post('create')
-  createRoom(@Body() body: createRoomDto): any {
-    return this.RoomSevice.createRooms(body);
+  createRoom(@Body() body: createRoomDto, @Request() req): any {
+    return this.RoomSevice.createRooms(body, req);
   }
   @UseGuards(AuthenticatedGuard)
   @Get('data/:id')

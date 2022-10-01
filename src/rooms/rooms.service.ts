@@ -40,13 +40,13 @@ export class RoomsService {
     });
     return data;
   }
-  async createRooms(body: createRoomDto) {
+  async createRooms(body: createRoomDto, req: any) {
     console.log(body);
     try {
       var data = await this.DatabaseService.room.create({
         data: {
           name: body.name,
-          user_id: body.user_id,
+          user_id: req.user.id,
           description: body.description,
         },
       });
