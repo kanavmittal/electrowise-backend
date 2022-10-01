@@ -31,13 +31,27 @@ export class RoomsService {
               orderBy: {
                 logged_at: 'desc',
               },
-              take: 1,
+              take: 2,
             },
           },
-          take: 5,
         },
       },
     });
+    for (var i = 0; i < data.length; i++) {
+      var devices = data[i].devices;
+      devices.sort(function (a, b) {
+        var v1 = -10000000;
+        var v2 = -10000000;
+        if (a.Device_data.length > 0) {
+          v1 = a.Device_data[0].power;
+        }
+        if (b.Device_data.length > 0) {
+          v2 = b.Device_data[0].power;
+        }
+        return v2 - v1;
+      });
+      data[i].devices = devices;
+    }
     return data;
   }
   async createRooms(body: createRoomDto, req: any) {
