@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   Req,
+  Delete,
 } from '@nestjs/common';
 import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 import { createRoomDto } from 'src/dto';
@@ -41,7 +42,7 @@ export class RoomsController {
     return this.RoomSevice.getRoomDevices(req, parseInt(params.id));
   }
   @UseGuards(AuthenticatedGuard)
-  @Get('delete/:id')
+  @Delete('delete/:id')
   deleteRoom(@Param() params, @Request() req) {
     return this.RoomSevice.deleteRoom(req, parseInt(params.id));
   }
