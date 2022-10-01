@@ -1,12 +1,9 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator"
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class createRoomDto {
-    @IsNotEmpty()
-    @IsString()
-    name :string
-    @IsNumber()
-    @IsNotEmpty()
-    user_id: number
-    @IsString()
-    description: string
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+  @IsString()
+  description: string;
 }
