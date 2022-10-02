@@ -50,6 +50,19 @@ export class RoomsService {
         }
         return v2 - v1;
       });
+      var total_current = 0;
+      var total_power = 0;
+      var total_voltage = 0;
+      for (var j = 0; j < devices.length; j++) {
+        if (devices[j].Device_data.length > 0) {
+          total_current += devices[j].Device_data[0].current;
+          total_power += devices[j].Device_data[0].power;
+          total_voltage = devices[j].Device_data[0].voltage;
+        }
+      }
+      data[i]['total_current'] = total_current;
+      data[i]['total_power'] = total_power;
+      data[i]['total_voltage'] = total_voltage;
       data[i].devices = devices;
     }
     return data;
