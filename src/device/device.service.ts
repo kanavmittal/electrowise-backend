@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
@@ -11,8 +12,8 @@ import {
   createDeviceDto,
   setHeadDeviceDto,
 } from 'src/dto';
-
-import jsonwebtoken from 'jsonwebtoken';
+import * as crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class DeviceService {
   constructor(private DatabaseService: DatabaseService) {}
@@ -41,16 +42,6 @@ export class DeviceService {
     return data;
   }
 
-  async getEncryptedDeviceInternal(id: string) {
-    var data = await this.DatabaseService.device.findFirst({
-      where: {
-        communication_url: id,
-      },
-    });
-    // TODO : add encryption
-    return data;
-  }
-
   async activateDevice(Body: activateDeviceDto) {
     try {
       var data = await this.DatabaseService.otp.findFirst({
@@ -65,40 +56,47 @@ export class DeviceService {
         },
       });
       if (!data) {
-        return NotFoundException;
+        return new HttpException('Invalid OTP', 400);
       }
       if (data.expiresAt < new Date()) {
-        return NotAcceptableException;
+        return new HttpException('OTP Expired', 400);
       }
-      var configuration = {
-        user_id: data.user_id,
-        device_id: data.device_id,
-      };
-      var token = jsonwebtoken.sign(
-        configuration,
-        process.env.JWT_DEVICE_SECRET,
-      );
+      var device = await this.DatabaseService.device.findFirst({
+        where: {
+          id: data.device_id,
+        },
+        select: {
+          communication_url: true,
+        },
+      });
       await this.DatabaseService.device.update({
         where: {
           id: data.device_id,
         },
         data: {
-          communication_url: token,
           status: true,
         },
       });
-      return { token, configuration };
+      return {
+        token: device.communication_url,
+        user_id: data.user_id,
+        device_id: data.device_id,
+      };
     } catch (error) {
-      return InternalServerErrorException;
+      console.log(error);
+      return new InternalServerErrorException();
     }
   }
 
   async createDevice(body: createDeviceDto, req: any) {
+    let uid = uuidv4();
+    var token = uid + crypto.randomBytes(64).toString('hex');
     var data = await this.DatabaseService.device.create({
       data: {
         name: body.name,
         room_id: body.room_id,
         user_id: req.user.id,
+        communication_url: token,
       },
     });
     try {
@@ -108,12 +106,17 @@ export class DeviceService {
           user_id: 0,
         },
       });
+
+      var minutesToAdd = 30;
+      var currentDate = new Date();
+      var futureDate = new Date(currentDate.getTime() + minutesToAdd * 60000);
+
       await this.DatabaseService.otp.update({
         where: {
           id: otps.id,
         },
         data: {
-          expiresAt: new Date(new Date().getMinutes() + 60000),
+          expiresAt: futureDate,
           device_id: data.id,
           user_id: req.user.id,
         },

@@ -30,7 +30,7 @@ model devicedata {
 model Device {
   id                Int          @id @default(autoincrement())
   Device_data       devicedata[]
-  room              Room         @relation(fields: [room_id], references: [id])
+  room              Room         @relation(fields: [room_id], references: [id], onDelete: Cascade)
   room_id           Int
   user_id           Int
   user              User         @relation(fields: [user_id], references: [id], onDelete: Cascade)

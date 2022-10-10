@@ -1,10 +1,7 @@
-import { IsNotEmpty,IsNumber } from "class-validator"
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
-export class postFollowDto{
-    @IsNotEmpty()
-    @IsNumber()
-    user_id:number
-    @IsNotEmpty()
-    @IsNumber()
-    follow_id:number
+export class postFollowDto {
+  @IsNotEmpty()
+  @IsNumber()
+  follow_id: number;
 }

@@ -17,11 +17,11 @@ export class SharingService {
     return data;
   }
 
-  async postFollow(request: postFollowDto) {
+  async postFollow(request: postFollowDto, id: number) {
     await this.DatabaseService.followers.create({
       data: {
         user_id: request.follow_id,
-        follower_id: request.user_id,
+        follower_id: id,
         isPending: true,
       },
     });
@@ -49,10 +49,10 @@ export class SharingService {
     }
     return result;
   }
-  async acceptRequests(req: any) {
+  async acceptRequests(req: any, id: number) {
     var dataOb = await this.DatabaseService.followers.findFirst({
       where: {
-        user_id: req.user.id,
+        user_id: id,
         follower_id: req.follow_id,
         isPending: true,
       },
@@ -92,10 +92,10 @@ export class SharingService {
     }
     return result;
   }
-  async deleteReq(req: any) {
+  async deleteReq(req: any, id: number) {
     var dataOb = await this.DatabaseService.followers.findFirst({
       where: {
-        user_id: req.user.id,
+        user_id: id,
         follower_id: req.follow_id,
         isPending: true,
       },

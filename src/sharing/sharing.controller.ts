@@ -22,18 +22,18 @@ export class SharingController {
   }
   @UseGuards(AuthenticatedGuard)
   @Post('sendRequest')
-  sendReq(@Body() body: postFollowDto): any {
-    return this.SharingService.postFollow(body);
+  sendReq(@Body() body: postFollowDto, @Request() req): any {
+    return this.SharingService.postFollow(body, req.user.id);
   }
   @UseGuards(AuthenticatedGuard)
   @Post('deleteRequest')
-  delete(@Body() body: postFollowDto): any {
-    return this.SharingService.deleteReq(body);
+  delete(@Body() body: postFollowDto, @Request() req): any {
+    return this.SharingService.deleteReq(body, req.user.id);
   }
   @UseGuards(AuthenticatedGuard)
   @Post('accept')
-  accetReq(@Body() body: postFollowDto): any {
-    return this.SharingService.acceptRequests(body);
+  accetReq(@Body() body: postFollowDto, @Request() req): any {
+    return this.SharingService.acceptRequests(body, req.user.id);
   }
   @UseGuards(AuthenticatedGuard)
   @Get('followers')

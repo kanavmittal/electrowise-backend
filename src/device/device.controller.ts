@@ -37,11 +37,6 @@ export class DeviceController {
     return this.DeviceService.createDevice(body, req);
   }
 
-  @Get('internal/:id')
-  getInternalEncrypted(@Param() params) {
-    return this.DeviceService.getEncryptedDeviceInternal(params.id);
-  }
-
   @UseGuards(AuthenticatedGuard)
   @Get('data/:id')
   getDeviceData(@Request() req, @Param() params) {
